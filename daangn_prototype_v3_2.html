@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>당근 매물 등록</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  background:#f2f2f2; display:flex; justify-content:center;
+  align-items:flex-start; min-height:100vh; padding:24px 0;
+  font-family:'Pretendard', -apple-system, sans-serif;
+}
+.phone {
+  width:375px; background:#fcfcfc; border-radius:40px;
+  overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.15); position:relative;
+}
+.screen { display:none; flex-direction:column; min-height:812px; background:#fcfcfc; }
+.screen.active { display:flex; }
+
+/* 상태바 */
+.sbar {
+  height:42px; padding:0 20px 0 18px;
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.sbar-time { font-size:14.086px; font-weight:600; color:#000; letter-spacing:-0.4695px; line-height:18.782px; }
+.sbar-right { display:flex; align-items:center; gap:5px; }
+
+/* 네비 */
+.topnav { height:44px; display:flex; align-items:center; padding:0 18px; flex-shrink:0; }
+.close-btn { background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; }
+
+/* 프로그레스 */
+.prog-wrap { padding:0 18px; flex-shrink:0; }
+.prog-bg { height:2px; background:#d4d6da; border-radius:1px; position:relative; }
+.prog-fill { height:2px; background:#555d6d; border-radius:1px; position:absolute; top:0; left:0; transition:width 0.3s; }
+
+/* 본문 */
+.body { flex:1; padding:0 18px; overflow-y:auto; }
+.title {
+  font-size:23px; font-weight:700; color:#1a1c20;
+  letter-spacing:-0.575px; line-height:1.4;
+  margin-top:23px;
+}
+.subtitle {
+  font-size:15px; font-weight:500; color:#555d6d;
+  letter-spacing:-0.375px; line-height:1.4;
+  margin-top:8px; margin-bottom:24px;
+}
+
+/* 컨디션 리스트 */
+.clist { border-radius:12px; overflow:hidden; border:1px solid #e5e8eb; margin-bottom:8px; }
+.crow {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 21px; height:69px; background:#fcfcfc; cursor:pointer;
+  border-bottom:1px solid #e5e8eb;
+}
+.crow:last-of-type { border-bottom:none; }
+.clabel { font-size:17px; font-weight:600; color:#111; letter-spacing:-0.425px; }
+.cbox {
+  width:25px; height:25px; border-radius:5px;
+  border:1.5px solid #d1d3d8; background:#fcfcfc;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  transition:all 0.15s;
+}
+.cbox.on { background:#2a3038; border-color:#2a3038; }
+.cbox.on::after {
+  content:''; width:6px; height:11px;
+  border:2.5px solid #fff; border-top:none; border-left:none;
+  transform:rotate(45deg) translateY(-1px); display:block;
+}
+.ep { display:none; background:#eeeff1; border-top:1px solid #dcdee3; padding:14px 21px 16px; }
+.ep.open { display:block; }
+.ep-hint {
+  font-size:15px; font-weight:500; color:#FF9364;
+  display:flex; align-items:center; gap:5px; margin-bottom:10px;
+}
+.photo-btn {
+  width:100%; height:45px; background:#fcfcfc;
+  border:none; border-radius:12px;
+  font-size:16px; font-weight:600; color:#323232;
+  cursor:pointer; font-family:inherit; letter-spacing:-0.4px;
+}
+
+/* 하단 버튼 */
+.bbar { padding:12px 18px 28px; display:flex; gap:8px; flex-shrink:0; background:#fcfcfc; }
+.btn-prev {
+  width:92px; height:51px; background:#eeeff1; border:none;
+  border-radius:12px; font-size:18px; font-weight:500;
+  color:#2a3038; cursor:pointer; font-family:inherit; letter-spacing:-0.45px; flex-shrink:0;
+}
+.btn-next, .btn-reg {
+  flex:1; height:51px; background:#FF6600; border:none;
+  border-radius:12px; font-size:18px; font-weight:500;
+  color:#fff; cursor:pointer; font-family:inherit; letter-spacing:-0.45px;
+}
+.home-bar { height:34px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; flex-shrink:0; }
+.home-ind { width:134px; height:5px; background:#111; border-radius:3px; opacity:0.18; }
+
+/* 버전 선택 화면 */
+.ver-wrap { padding:24px 0 0; }
+.ver-title { font-size:15px; font-weight:500; color:#555d6d; letter-spacing:-0.375px; margin-bottom:16px; }
+.ver-btns { display:flex; gap:10px; }
+.ver-btn {
+  flex:1; padding:18px 0; border:1.5px solid #e5e8eb;
+  border-radius:12px; background:#fff; cursor:pointer; font-family:inherit;
+  text-align:center; transition:all 0.15s;
+}
+.ver-btn.sel { border-color:#FF6600; background:#fff5f0; }
+.ver-btn-name { font-size:17px; font-weight:600; color:#1a1c20; letter-spacing:-0.425px; display:block; }
+.ver-btn.sel .ver-btn-name { color:#FF6600; }
+.ver-btn-desc { font-size:13px; font-weight:400; color:#a3a9b2; letter-spacing:-0.325px; display:block; margin-top:4px; }
+.ver-btn.sel .ver-btn-desc { color:#ffb380; }
+
+/* A안 */
+.qa-block { background:#fff; border:1px solid #e5e8eb; border-radius:12px; padding:18px 17px; margin-bottom:10px; }
+.qa-q { font-size:16px; font-weight:600; color:#1a1c20; letter-spacing:-0.4px; line-height:1.4; margin-bottom:10px; }
+.qa-input {
+  width:100%; padding:13px 14px; border:none; border-radius:9px;
+  font-size:15px; font-weight:500; color:#1a1c20; background:#f3f4f5;
+  font-family:inherit; outline:none; resize:none;
+  letter-spacing:-0.375px; line-height:1.4;
+}
+.qa-input::placeholder { color:#a3a9b2; font-weight:500; }
+.qa-input:focus { background:#eef0f2; }
+
+/* B안 */
+.main-ta {
+  width:100%; min-height:124px; padding:14px 19px;
+  border:1px solid #e5e8eb; border-radius:12px;
+  font-size:15px; font-weight:500; color:#1a1c20; background:#fff;
+  font-family:inherit; resize:none; outline:none;
+  line-height:1.6; letter-spacing:-0.375px; margin-top:16px;
+}
+.main-ta::placeholder { color:#868b94; font-weight:500; }
+.main-ta:focus { border-color:#FF6600; }
+.char-count {
+  text-align:right; font-size:14px; font-weight:400; color:#a7aab0;
+  margin-top:6px; margin-bottom:16px; letter-spacing:-0.35px;
+}
+.chip-label { font-size:15px; font-weight:600; color:#111; letter-spacing:-0.375px; margin-bottom:12px; line-height:1.4; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.chip {
+  padding:8px 17px; border:1px solid #e5e8eb;
+  border-radius:100px; font-size:14px; font-weight:500;
+  color:#555d6d; cursor:pointer; background:#fff;
+  font-family:inherit; letter-spacing:-0.35px; line-height:1.4;
+  transition:all 0.15s;
+}
+.chip.on { border-color:#FF6600; color:#FF6600; background:rgba(255,102,0,0.05); }
+.guide-box {
+  display:none; background:rgba(255,102,0,0.05);
+  border:1px solid rgba(255,102,0,0.5); border-radius:12px;
+  padding:14px 16px; margin-bottom:10px;
+}
+.guide-box.open { display:block; }
+.guide-title { font-size:14px; font-weight:600; color:#e14d00; letter-spacing:-0.35px; line-height:1.6; margin-bottom:2px; }
+.guide-body { font-size:14px; font-weight:500; color:#e14d00; letter-spacing:-0.35px; line-height:1.6; }
+.warn-box {
+  display:none; background:#f5f4ec; border:1px solid #b4b3af;
+  border-radius:12px; padding:12px 14px 12px 14px;
+  align-items:center; gap:6px; margin-bottom:10px;
+}
+.warn-box.show { display:flex; }
+.warn-text { font-size:14px; font-weight:500; color:#3d3d3a; letter-spacing:-0.35px; line-height:1.6; }
+
+/* 완료 */
+.done-wrap { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center; }
+.done-emoji { font-size:56px; margin-bottom:20px; }
+.done-title { font-size:22px; font-weight:700; color:#111; letter-spacing:-0.55px; margin-bottom:10px; }
+.done-sub { font-size:15px; font-weight:500; color:#555d6d; line-height:1.6; letter-spacing:-0.375px; }
+.done-btn { margin-top:36px; padding:15px 36px; background:#FF6600; border:none; border-radius:12px; font-size:16px; font-weight:600; color:#fff; cursor:pointer; font-family:inherit; letter-spacing:-0.4px; }
+
+/* SVG 아이콘 */
+.ico { display:inline-flex; align-items:center; justify-content:center; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- 화면 0: 버전 선택 -->
+  <div class="screen active" id="s0">
+    <div class="sbar">
+      <span class="sbar-time">9:41</span>
+      <div class="sbar-right">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#111" opacity="0.3"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#111" opacity="0.5"/><rect x="9" y="0.5" width="3" height="11.5" rx="1" fill="#111" opacity="0.7"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#111"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.4C5.6 2.4 3.4 3.4 1.8 5L0 3.2C2.2 1.2 5 0 8 0s5.8 1.2 8 3.2L14.2 5C12.6 3.4 10.4 2.4 8 2.4z" fill="#111"/><path d="M8 5.8c-1.6 0-3 .6-4 1.6L2.2 5.6C3.6 4.2 5.7 3.4 8 3.4s4.4.8 5.8 2.2L12 7.4C11 6.4 9.6 5.8 8 5.8z" fill="#111"/><path d="M8 9.2c-.8 0-1.5.3-2 .8L8 12l2-2c-.5-.5-1.2-.8-2-.8z" fill="#111"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity="0.35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#111"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#111" fill-opacity="0.4"/></svg>
+      </div>
+    </div>
+    <div class="topnav"></div>
+    <div class="prog-wrap">
+      <div class="prog-bg"><div class="prog-fill" style="width:55%"></div></div>
+    </div>
+    <div class="body">
+      <p class="title">어떤 방식으로<br>소개를 작성할까요?</p>
+      <p class="subtitle">테스트할 버전을 선택해주세요</p>
+      <div class="ver-wrap">
+        <div class="ver-btns">
+          <button class="ver-btn" id="btn-a" onclick="selVer('a')">
+            <span class="ver-btn-name">버전 A</span>
+            <span class="ver-btn-desc">선택 항목별 질문</span>
+          </button>
+          <button class="ver-btn" id="btn-b" onclick="selVer('b')">
+            <span class="ver-btn-name">버전 B</span>
+            <span class="ver-btn-desc">자유입력 + 칩 가이드</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="bbar">
+      <button class="btn-prev" onclick="goto('s1')">이전</button>
+      <button class="btn-next" id="next0" onclick="goVer()" style="opacity:0.4">다음</button>
+    </div>
+    <div class="home-bar"><div class="home-ind"></div></div>
+  </div>
+
+  <!-- 화면 1: 컨디션 선택 -->
+  <div class="screen" id="s1">
+    <div class="sbar">
+      <span class="sbar-time">9:41</span>
+      <div class="sbar-right">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#111" opacity="0.3"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#111" opacity="0.5"/><rect x="9" y="0.5" width="3" height="11.5" rx="1" fill="#111" opacity="0.7"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#111"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.4C5.6 2.4 3.4 3.4 1.8 5L0 3.2C2.2 1.2 5 0 8 0s5.8 1.2 8 3.2L14.2 5C12.6 3.4 10.4 2.4 8 2.4z" fill="#111"/><path d="M8 5.8c-1.6 0-3 .6-4 1.6L2.2 5.6C3.6 4.2 5.7 3.4 8 3.4s4.4.8 5.8 2.2L12 7.4C11 6.4 9.6 5.8 8 5.8z" fill="#111"/><path d="M8 9.2c-.8 0-1.5.3-2 .8L8 12l2-2c-.5-.5-1.2-.8-2-.8z" fill="#111"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity="0.35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#111"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#111" fill-opacity="0.4"/></svg>
+      </div>
+    </div>
+    <div class="topnav">
+      <button class="close-btn" onclick="goto('s0')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4.8635 4.86346C5.21497 4.51199 5.78482 4.51199 6.13629 4.86346L11.9999 10.7271L17.8635 4.86346C18.2149 4.51199 18.7848 4.51199 19.1362 4.86346C19.4877 5.21493 19.4877 5.78478 19.1363 6.13625L13.2727 11.9999L19.1363 17.8635C19.4877 18.2149 19.4877 18.7848 19.1362 19.1363C18.7848 19.4877 18.2149 19.4877 17.8635 19.1363L11.9999 13.2727L6.13629 19.1363C5.78482 19.4877 5.21497 19.4877 4.8635 19.1363C4.51203 18.7848 4.51203 18.2149 4.8635 17.8635L10.7271 11.9999L4.8635 6.13625C4.51203 5.78478 4.51203 5.21493 4.8635 4.86346Z" fill="#171719"/></svg>
+      </button>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-bg"><div class="prog-fill" style="width:68%"></div></div>
+    </div>
+    <div class="body">
+      <p class="title">현재 매물의 컨디션을<br>선택해주세요</p>
+      <p class="subtitle">해당되는 항목을 선택하면 설명 작성이 더 쉬워져요</p>
+      <div class="clist">
+        <div>
+          <div class="crow" onclick="tog('int')">
+            <span class="clabel">인테리어</span>
+            <div class="cbox" id="cb-int"></div>
+          </div>
+          <div class="ep" id="ep-int">
+            <p class="ep-hint">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6.48728 9.375C6.48728 7.98738 7.61216 6.8625 8.99977 6.8625C10.3874 6.8625 11.5123 7.98738 11.5123 9.375C11.5123 10.7626 10.3874 11.8875 8.99977 11.8875C7.61216 11.8875 6.48728 10.7626 6.48728 9.375Z" fill="#FF9364"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7.99443 1.76261L10.006 1.76261C10.3528 1.76231 10.6453 1.76205 10.9251 1.83732C11.171 1.90348 11.4034 2.01232 11.6117 2.15888C11.8487 2.32562 12.0358 2.55049 12.2576 2.81708L13.254 4.01265L13.7516 4.01265C14.149 4.01264 14.4874 4.01263 14.7652 4.03533C15.0571 4.05918 15.341 4.1114 15.6125 4.24971C16.0217 4.45824 16.3545 4.79097 16.563 5.20022C16.7013 5.47167 16.7535 5.75562 16.7774 6.04749C16.8001 6.3253 16.8001 6.66368 16.8 7.06107V12.8142C16.8001 13.2116 16.8001 13.55 16.7774 13.8278C16.7535 14.1197 16.7013 14.4036 16.563 14.6751C16.3545 15.0843 16.0217 15.4171 15.6125 15.6256C15.341 15.7639 15.0571 15.8161 14.7652 15.84C14.4874 15.8627 14.149 15.8627 13.7516 15.8626H4.24854C3.85115 15.8627 3.51275 15.8627 3.23493 15.84C2.94306 15.8161 2.65912 15.7639 2.38767 15.6256C1.97842 15.4171 1.64569 15.0843 1.43717 14.6751C1.29886 14.4036 1.24663 14.1197 1.22278 13.8278C1.20009 13.55 1.20009 13.2116 1.2001 12.8142V7.0611C1.20009 6.66371 1.20009 6.3253 1.22278 6.04749C1.24663 5.75562 1.29886 5.47167 1.43717 5.20022C1.64569 4.79097 1.97842 4.45824 2.38767 4.24971C2.65912 4.1114 2.94306 4.05918 3.23493 4.03533C3.51276 4.01263 3.85115 4.01264 4.24855 4.01265L4.74677 4.01265L5.74247 2.81751C5.96427 2.55081 6.15137 2.32586 6.38836 2.15905C6.59667 2.01243 6.82912 1.90354 7.0751 1.83735C7.35496 1.76205 7.64755 1.76231 7.99443 1.76261ZM8.99977 5.5125C6.86658 5.5125 5.13729 7.2418 5.13729 9.375C5.13729 11.5082 6.86658 13.2375 8.99977 13.2375C11.133 13.2375 12.8623 11.5082 12.8623 9.375C12.8623 7.2418 11.133 5.5125 8.99977 5.5125Z" fill="#FF9364"/></svg>
+              인테리어 사진을 추가해주세요
+            </p>
+            <button class="photo-btn">사진 추가하기</button>
+          </div>
+        </div>
+        <div>
+          <div class="crow" onclick="tog('sash')"><span class="clabel">샷시 교체</span><div class="cbox" id="cb-sash"></div></div>
+          <div class="ep" id="ep-sash">
+            <p class="ep-hint">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6.48728 9.375C6.48728 7.98738 7.61216 6.8625 8.99977 6.8625C10.3874 6.8625 11.5123 7.98738 11.5123 9.375C11.5123 10.7626 10.3874 11.8875 8.99977 11.8875C7.61216 11.8875 6.48728 10.7626 6.48728 9.375Z" fill="#FF9364"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7.99443 1.76261L10.006 1.76261C10.3528 1.76231 10.6453 1.76205 10.9251 1.83732C11.171 1.90348 11.4034 2.01232 11.6117 2.15888C11.8487 2.32562 12.0358 2.55049 12.2576 2.81708L13.254 4.01265L13.7516 4.01265C14.149 4.01264 14.4874 4.01263 14.7652 4.03533C15.0571 4.05918 15.341 4.1114 15.6125 4.24971C16.0217 4.45824 16.3545 4.79097 16.563 5.20022C16.7013 5.47167 16.7535 5.75562 16.7774 6.04749C16.8001 6.3253 16.8001 6.66368 16.8 7.06107V12.8142C16.8001 13.2116 16.8001 13.55 16.7774 13.8278C16.7535 14.1197 16.7013 14.4036 16.563 14.6751C16.3545 15.0843 16.0217 15.4171 15.6125 15.6256C15.341 15.7639 15.0571 15.8161 14.7652 15.84C14.4874 15.8627 14.149 15.8627 13.7516 15.8626H4.24854C3.85115 15.8627 3.51275 15.8627 3.23493 15.84C2.94306 15.8161 2.65912 15.7639 2.38767 15.6256C1.97842 15.4171 1.64569 15.0843 1.43717 14.6751C1.29886 14.4036 1.24663 14.1197 1.22278 13.8278C1.20009 13.55 1.20009 13.2116 1.2001 12.8142V7.0611C1.20009 6.66371 1.20009 6.3253 1.22278 6.04749C1.24663 5.75562 1.29886 5.47167 1.43717 5.20022C1.64569 4.79097 1.97842 4.45824 2.38767 4.24971C2.65912 4.1114 2.94306 4.05918 3.23493 4.03533C3.51276 4.01263 3.85115 4.01264 4.24855 4.01265L4.74677 4.01265L5.74247 2.81751C5.96427 2.55081 6.15137 2.32586 6.38836 2.15905C6.59667 2.01243 6.82912 1.90354 7.0751 1.83735C7.35496 1.76205 7.64755 1.76231 7.99443 1.76261ZM8.99977 5.5125C6.86658 5.5125 5.13729 7.2418 5.13729 9.375C5.13729 11.5082 6.86658 13.2375 8.99977 13.2375C11.133 13.2375 12.8623 11.5082 12.8623 9.375C12.8623 7.2418 11.133 5.5125 8.99977 5.5125Z" fill="#FF9364"/></svg>
+              샷시 교체 사진을 추가해주세요
+            </p>
+            <button class="photo-btn">사진 추가하기</button>
+          </div>
+        </div>
+        <div>
+          <div class="crow" onclick="tog('boil')"><span class="clabel">보일러 교체</span><div class="cbox" id="cb-boil"></div></div>
+          <div class="ep" id="ep-boil">
+            <p class="ep-hint">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6.48728 9.375C6.48728 7.98738 7.61216 6.8625 8.99977 6.8625C10.3874 6.8625 11.5123 7.98738 11.5123 9.375C11.5123 10.7626 10.3874 11.8875 8.99977 11.8875C7.61216 11.8875 6.48728 10.7626 6.48728 9.375Z" fill="#FF9364"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7.99443 1.76261L10.006 1.76261C10.3528 1.76231 10.6453 1.76205 10.9251 1.83732C11.171 1.90348 11.4034 2.01232 11.6117 2.15888C11.8487 2.32562 12.0358 2.55049 12.2576 2.81708L13.254 4.01265L13.7516 4.01265C14.149 4.01264 14.4874 4.01263 14.7652 4.03533C15.0571 4.05918 15.341 4.1114 15.6125 4.24971C16.0217 4.45824 16.3545 4.79097 16.563 5.20022C16.7013 5.47167 16.7535 5.75562 16.7774 6.04749C16.8001 6.3253 16.8001 6.66368 16.8 7.06107V12.8142C16.8001 13.2116 16.8001 13.55 16.7774 13.8278C16.7535 14.1197 16.7013 14.4036 16.563 14.6751C16.3545 15.0843 16.0217 15.4171 15.6125 15.6256C15.341 15.7639 15.0571 15.8161 14.7652 15.84C14.4874 15.8627 14.149 15.8627 13.7516 15.8626H4.24854C3.85115 15.8627 3.51275 15.8627 3.23493 15.84C2.94306 15.8161 2.65912 15.7639 2.38767 15.6256C1.97842 15.4171 1.64569 15.0843 1.43717 14.6751C1.29886 14.4036 1.24663 14.1197 1.22278 13.8278C1.20009 13.55 1.20009 13.2116 1.2001 12.8142V7.0611C1.20009 6.66371 1.20009 6.3253 1.22278 6.04749C1.24663 5.75562 1.29886 5.47167 1.43717 5.20022C1.64569 4.79097 1.97842 4.45824 2.38767 4.24971C2.65912 4.1114 2.94306 4.05918 3.23493 4.03533C3.51276 4.01263 3.85115 4.01264 4.24855 4.01265L4.74677 4.01265L5.74247 2.81751C5.96427 2.55081 6.15137 2.32586 6.38836 2.15905C6.59667 2.01243 6.82912 1.90354 7.0751 1.83735C7.35496 1.76205 7.64755 1.76231 7.99443 1.76261ZM8.99977 5.5125C6.86658 5.5125 5.13729 7.2418 5.13729 9.375C5.13729 11.5082 6.86658 13.2375 8.99977 13.2375C11.133 13.2375 12.8623 11.5082 12.8623 9.375C12.8623 7.2418 11.133 5.5125 8.99977 5.5125Z" fill="#FF9364"/></svg>
+              보일러 교체 사진을 추가해주세요
+            </p>
+            <button class="photo-btn">사진 추가하기</button>
+          </div>
+        </div>
+        <div class="crow" onclick="tog('water')"><span class="clabel">수압 양호</span><div class="cbox" id="cb-water"></div></div>
+        <div class="crow" onclick="tog('light')"><span class="clabel">채광 좋음</span><div class="cbox" id="cb-light"></div></div>
+        <div class="crow" style="border-bottom:none" onclick="tog('noise')"><span class="clabel">소음 적음</span><div class="cbox" id="cb-noise"></div></div>
+      </div>
+    </div>
+    <div class="bbar">
+      <button class="btn-prev" onclick="goto('s0')">이전</button>
+      <button class="btn-next" onclick="goWrite()">다음</button>
+    </div>
+    <div class="home-bar"><div class="home-ind"></div></div>
+  </div>
+
+  <!-- A안 -->
+  <div class="screen" id="s-a">
+    <div class="sbar">
+      <span class="sbar-time">9:41</span>
+      <div class="sbar-right">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#111" opacity="0.3"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#111" opacity="0.5"/><rect x="9" y="0.5" width="3" height="11.5" rx="1" fill="#111" opacity="0.7"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#111"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.4C5.6 2.4 3.4 3.4 1.8 5L0 3.2C2.2 1.2 5 0 8 0s5.8 1.2 8 3.2L14.2 5C12.6 3.4 10.4 2.4 8 2.4z" fill="#111"/><path d="M8 5.8c-1.6 0-3 .6-4 1.6L2.2 5.6C3.6 4.2 5.7 3.4 8 3.4s4.4.8 5.8 2.2L12 7.4C11 6.4 9.6 5.8 8 5.8z" fill="#111"/><path d="M8 9.2c-.8 0-1.5.3-2 .8L8 12l2-2c-.5-.5-1.2-.8-2-.8z" fill="#111"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity="0.35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#111"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#111" fill-opacity="0.4"/></svg>
+      </div>
+    </div>
+    <div class="topnav">
+      <button class="close-btn" onclick="goto('s1')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4.8635 4.86346C5.21497 4.51199 5.78482 4.51199 6.13629 4.86346L11.9999 10.7271L17.8635 4.86346C18.2149 4.51199 18.7848 4.51199 19.1362 4.86346C19.4877 5.21493 19.4877 5.78478 19.1363 6.13625L13.2727 11.9999L19.1363 17.8635C19.4877 18.2149 19.4877 18.7848 19.1362 19.1363C18.7848 19.4877 18.2149 19.4877 17.8635 19.1363L11.9999 13.2727L6.13629 19.1363C5.78482 19.4877 5.21497 19.4877 4.8635 19.1363C4.51203 18.7848 4.51203 18.2149 4.8635 17.8635L10.7271 11.9999L4.8635 6.13625C4.51203 5.78478 4.51203 5.21493 4.8635 4.86346Z" fill="#171719"/></svg>
+      </button>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-bg"><div class="prog-fill" style="width:90%"></div></div>
+    </div>
+    <div class="body" id="a-body">
+      <p class="title">이제 마지막이에요!</p>
+      <p class="subtitle">선택한 컨디션을 바탕으로 질문을 드릴게요</p>
+    </div>
+    <div class="bbar">
+      <button class="btn-prev" onclick="goto('s1')">이전</button>
+      <button class="btn-reg" onclick="goto('s-done')">등록하기</button>
+    </div>
+    <div class="home-bar"><div class="home-ind"></div></div>
+  </div>
+
+  <!-- B안 -->
+  <div class="screen" id="s-b">
+    <div class="sbar">
+      <span class="sbar-time">9:41</span>
+      <div class="sbar-right">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#111" opacity="0.3"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#111" opacity="0.5"/><rect x="9" y="0.5" width="3" height="11.5" rx="1" fill="#111" opacity="0.7"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#111"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.4C5.6 2.4 3.4 3.4 1.8 5L0 3.2C2.2 1.2 5 0 8 0s5.8 1.2 8 3.2L14.2 5C12.6 3.4 10.4 2.4 8 2.4z" fill="#111"/><path d="M8 5.8c-1.6 0-3 .6-4 1.6L2.2 5.6C3.6 4.2 5.7 3.4 8 3.4s4.4.8 5.8 2.2L12 7.4C11 6.4 9.6 5.8 8 5.8z" fill="#111"/><path d="M8 9.2c-.8 0-1.5.3-2 .8L8 12l2-2c-.5-.5-1.2-.8-2-.8z" fill="#111"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity="0.35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#111"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#111" fill-opacity="0.4"/></svg>
+      </div>
+    </div>
+    <div class="topnav">
+      <button class="close-btn" onclick="goto('s1')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4.8635 4.86346C5.21497 4.51199 5.78482 4.51199 6.13629 4.86346L11.9999 10.7271L17.8635 4.86346C18.2149 4.51199 18.7848 4.51199 19.1362 4.86346C19.4877 5.21493 19.4877 5.78478 19.1363 6.13625L13.2727 11.9999L19.1363 17.8635C19.4877 18.2149 19.4877 18.7848 19.1362 19.1363C18.7848 19.4877 18.2149 19.4877 17.8635 19.1363L11.9999 13.2727L6.13629 19.1363C5.78482 19.4877 5.21497 19.4877 4.8635 19.1363C4.51203 18.7848 4.51203 18.2149 4.8635 17.8635L10.7271 11.9999L4.8635 6.13625C4.51203 5.78478 4.51203 5.21493 4.8635 4.86346Z" fill="#171719"/></svg>
+      </button>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-bg"><div class="prog-fill" style="width:90%"></div></div>
+    </div>
+    <div class="body">
+      <p class="title" style="margin-top:16px">이제 마지막이에요!<br>매물에 대한 소개를<br>적어주세요</p>
+      <textarea class="main-ta" id="main-ta"
+        placeholder="매물의 특징과 장점을 자세히 적어주세요. 이전 세입자들의 경험을 공유하면 더 많은 연락을 받을 수 있어요."
+        oninput="onTa(this)"></textarea>
+      <p class="char-count"><span id="tc">0</span>/1000</p>
+      <p class="chip-label">선택한 컨디션 ㅡ 탭하면 작성 가이드를 볼 수 있어요</p>
+      <div class="chips" id="chips"></div>
+      <div class="guide-box" id="guide-box">
+        <p class="guide-title" id="g-title"></p>
+        <p class="guide-body" id="g-body"></p>
+      </div>
+      <div class="warn-box" id="warn-box">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.57457 9.00007C1.57457 4.89936 4.89884 1.57507 8.99954 1.57507C13.1002 1.57507 16.4245 4.89936 16.4245 9.00007C16.4245 13.1008 13.1002 16.4251 8.99954 16.4251C4.89884 16.4251 1.57457 13.1008 1.57457 9.00007ZM8.99961 5.325C9.3724 5.325 9.67461 5.62721 9.67461 6V9.375C9.67461 9.74779 9.3724 10.05 8.99961 10.05C8.62682 10.05 8.32461 9.74779 8.32461 9.375V6C8.32461 5.62721 8.62682 5.325 8.99961 5.325ZM9.74952 12C9.74952 12.4142 9.41373 12.75 8.99952 12.75C8.58531 12.75 8.24952 12.4142 8.24952 12C8.24952 11.5858 8.58531 11.25 8.99952 11.25C9.41373 11.25 9.74952 11.5858 9.74952 12Z" fill="#FF9364"/></svg>
+        <p class="warn-text" id="warn-text"></p>
+      </div>
+      <div style="height:16px"></div>
+    </div>
+    <div class="bbar">
+      <button class="btn-prev" onclick="goto('s1')">이전</button>
+      <button class="btn-reg" onclick="goto('s-done')">등록하기</button>
+    </div>
+    <div class="home-bar"><div class="home-ind"></div></div>
+  </div>
+
+  <!-- 완료 -->
+  <div class="screen" id="s-done">
+    <div class="sbar">
+      <span class="sbar-time">9:41</span>
+      <div class="sbar-right">
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity="0.35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#111"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#111" fill-opacity="0.4"/></svg>
+      </div>
+    </div>
+    <div class="body" style="display:flex;flex-direction:column;">
+      <div class="done-wrap">
+        <div class="done-emoji">🎉</div>
+        <p class="done-title">매물 등록이 완료됐어요!</p>
+        <p class="done-sub">작성해주신 컨디션 정보 덕분에<br>임차인이 더 잘 판단할 수 있어요.</p>
+        <button class="done-btn" onclick="reset()">처음으로 돌아가기</button>
+      </div>
+    </div>
+    <div class="home-bar"><div class="home-ind"></div></div>
+  </div>
+
+</div>
+<script>
+const st = {};
+let ver = null;
+const D = {
+  int:  {label:'인테리어', q:'인테리어는 언제, 어떤 부분을 하셨나요?',   ph:'예) 2023년 전체 리모델링, 주방 욕실 포함',         gt:'인테리어 ㅡ 이렇게 적어보세요', gb:'언제 어떤 부분을 리모델링 했는지, 어떤 자재를 사용했는지 구체적으로 적으면 좋아요.'},
+  sash: {label:'샷시 교체', q:'샷시는 언제 교체하셨나요?',              ph:'예) 2022년 전체 이중창으로 교체',                   gt:'샷시 교체 ㅡ 이렇게 적어보세요', gb:'교체 시기와 단창/이중창 여부를 적으면 단열·소음이 궁금한 임차인에게 바로 답이 돼요.'},
+  boil: {label:'보일러 교체', q:'보일러는 언제 교체하셨나요?',           ph:'예) 2021년 귀뚜라미 신형으로 교체',                 gt:'보일러 ㅡ 이렇게 적어보세요', gb:'교체 연도와 브랜드를 적으면 난방 걱정하는 임차인에게 신뢰를 줄 수 있어요.'},
+  water:{label:'수압 양호', q:'수압은 어떤 편인가요?',                  ph:'예) 고층임에도 수압 세서 불편함 없었어요',             gt:'수압 ㅡ 이렇게 적어보세요', gb:'샤워나 설거지할 때 불편함이 없었다면 구체적으로 적어주세요.'},
+  light:{label:'채광 좋음', q:'채광이 잘 드는 시간대가 있나요?',         ph:'예) 오후 2시까지 거실에 햇빛이 잘 들어요',            gt:'채광 ㅡ 이렇게 적어보세요', gb:'햇빛이 드는 방향과 시간대를 적어주세요. 구체적일수록 임차인이 잘 그려볼 수 있어요.'},
+  noise:{label:'소음 적음', q:'소음은 어떤 편인가요?',                  ph:'예) 내부 층간소음 거의 없고 도로소음도 안 들려요',      gt:'소음 ㅡ 이렇게 적어보세요', gb:'도로변인지, 위층 소음은 어떤지 솔직하게 적어주세요. 오히려 신뢰가 올라가요.'}
+};
+function goto(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function tog(id){
+  st[id]=!st[id];
+  document.getElementById('cb-'+id).classList.toggle('on',!!st[id]);
+  if(id==='int'||id==='sash'||id==='boil'){
+    const ep=document.getElementById('ep-'+id);
+    if(ep) ep.classList.toggle('open',!!st[id]);
+  }
+}
+function selVer(v){
+  ver=v;
+  document.getElementById('btn-a').classList.toggle('sel',v==='a');
+  document.getElementById('btn-b').classList.toggle('sel',v==='b');
+  document.getElementById('next0').style.opacity='1';
+}
+function goVer(){ if(!ver){selVer('b');} goto('s1'); }
+function goWrite(){
+  const sel=Object.keys(st).filter(k=>st[k]);
+  buildA(sel); buildB(sel);
+  goto('s-'+(ver||'b'));
+}
+function buildA(sel){
+  const body=document.getElementById('a-body');
+  let h='<p class="title">이제 마지막이에요!</p><p class="subtitle">선택한 컨디션을 바탕으로 질문을 드릴게요</p>';
+  sel.forEach(id=>{ h+=`<div class="qa-block"><p class="qa-q">${D[id].q}</p><input class="qa-input" placeholder="${D[id].ph}"/></div>`; });
+  h+=`<div class="qa-block"><p class="qa-q">그 외 매물에 대해 설명을 적어주세요</p><textarea class="qa-input" style="min-height:88px" placeholder="매물의 특징과 장점을 자세히 적어주세요. 이전 세입자들의 경험을 공유하면 더 많은 연락을 받을 수 있어요."></textarea></div><div style="height:20px"></div>`;
+  body.innerHTML=h;
+}
+const keywords = {
+  int:  ['인테리어','리모델링','인테'],
+  sash: ['샷시','창문','이중창','단창'],
+  boil: ['보일러','난방'],
+  water:['수압','수도'],
+  light:['채광','햇빛','햇살','일조'],
+  noise:['소음','층간','조용']
+};
+let selItems = [];
+
+function buildB(sel){
+  selItems = sel;
+  const cont=document.getElementById('chips');
+  cont.innerHTML='';
+  sel.forEach((id,i)=>{
+    const btn=document.createElement('button');
+    btn.className='chip'+(i===0?' on':'');
+    btn.textContent=D[id].label;
+    btn.onclick=()=>showG(id,btn);
+    cont.appendChild(btn);
+  });
+  if(sel.length>0){
+    showG(sel[0],cont.querySelector('.chip'));
+  }
+  checkWarn('');
+}
+function showG(id,el){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('g-title').textContent=D[id].gt;
+  document.getElementById('g-body').textContent=D[id].gb;
+  document.getElementById('guide-box').classList.add('open');
+}
+function checkWarn(text){
+  const missing = selItems.find(id =>
+    !keywords[id].some(kw => text.includes(kw))
+  );
+  const box = document.getElementById('warn-box');
+  if(missing){
+    document.getElementById('warn-text').textContent=D[missing].label+'를 선택했는데 설명에 담기지 않았어요';
+    box.classList.add('show');
+  } else {
+    box.classList.remove('show');
+  }
+}
+function onTa(el){
+  document.getElementById('tc').textContent=el.value.length;
+  checkWarn(el.value);
+}
+function reset(){
+  Object.keys(st).forEach(k=>{st[k]=false;});
+  ['int','sash','boil','water','light','noise'].forEach(id=>{
+    document.getElementById('cb-'+id).classList.remove('on');
+  });
+  document.getElementById('ep-int').classList.remove('open');
+  document.getElementById('ep-sash').classList.remove('open');
+  document.getElementById('ep-boil').classList.remove('open');
+  ver=null;
+  document.getElementById('btn-a').classList.remove('sel');
+  document.getElementById('btn-b').classList.remove('sel');
+  document.getElementById('next0').style.opacity='0.4';
+  const ta=document.getElementById('main-ta');
+  if(ta) ta.value='';
+  document.getElementById('tc').textContent='0';
+  goto('s0');
+}
+</script>
+</body>
+</html>
